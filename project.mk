@@ -2,6 +2,7 @@ include .env
 export $(shell sed 's/=.*//' .env)
 
 DB_SETUP := user=$(DB_USERNAME) password=$(DB_PASSWORD) dbname=$(DB_NAME) host=$(DB_HOST) port=$(DB_PORT) sslmode=disable
+SQLITE_FILE = ./passwords.db
 MIGRATIONS_DIR = scripts/migrations
 
 .PHONY: help
@@ -31,6 +32,14 @@ help:
 build:
 	go build -o bin/main cmd/passwordmanager/main.go
 
-.PHONY: migrate
-migrate:
+.PHONY: migrate-pg
+migrate-pg:
 	goose -dir "$(MIGRATIONS_DIR)" postgres "$(DB_SETUP)" up
+
+.PHONY: migrate-sqlite
+migrate-sqlite:
+	goose -dir "$(MIGRATIONS_DIR)" sqlite "$(SQLITE_FILE)" up
+
+.PHONY: migrate-down-sqlite
+migrate-down-sqlite:
+	goose -dir "$(MIGRATIONS_DIR)" sqlite "$(SQLITE_FILE)" down
