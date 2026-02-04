@@ -19,7 +19,7 @@ func GenerateRandomSecurePassword(length uint8) string {
 
 	passwordRunes := make([]rune, 0, length)
 
-	for range length {
+	for i := uint8(0); i < length; i++ {
 		passwordRunes = append(passwordRunes, getRandomSymbol())
 	}
 
@@ -45,7 +45,7 @@ func GetArgonKey(masterPassword string, salt []byte) []byte {
 // GenerateArgon2Key – generates new argon2 key
 func GenerateArgon2Key(masterPassword string, saltLength int64) ([]byte, []byte) {
 	salt := generateSalt(saltLength)
-	key := argon2.Key([]byte(masterPassword), salt, 3, 32*1024, 4, 32)
+	key := argon2.IDKey([]byte(masterPassword), salt, 3, 32*1024, 4, 32)
 
 	return key, salt
 }
