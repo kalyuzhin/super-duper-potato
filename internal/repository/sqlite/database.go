@@ -37,3 +37,13 @@ func (db *DB) Exec(_ context.Context, q string, args ...any) (sql.Result, error)
 func (db *DB) QueryRow(_ context.Context, q string, args ...any) *sql.Row {
 	return db.DB.QueryRow(q, args)
 }
+
+func checkSQLErrors(err error) {
+	switch err.Error() {
+
+	}
+}
+
+func checkRowsAffected(rows sql.Result) {
+
+}
