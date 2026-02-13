@@ -3,6 +3,7 @@
 CREATE TABLE vault
 (
     id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id        BIGINT  NOT NULL,
     service        TEXT    NOT NULL,
     login          BLOB    NOT NULL,
     login_nonce    BLOB    NOT NULL,

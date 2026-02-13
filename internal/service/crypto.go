@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+
 	"github.com/kalyuzhin/password-manager/internal/repository/sqlite"
 )
 
@@ -11,7 +12,7 @@ type Service struct {
 }
 
 // SaveNewPassword – ...
-func (s *Service) SaveNewPassword(ctx context.Context, masterPassword, metaName, service, login, password string) {
+func (s *Service) SaveNewPassword(ctx context.Context, userID int64, masterPassword, metaName, service, login, password string) {
 
 }
 

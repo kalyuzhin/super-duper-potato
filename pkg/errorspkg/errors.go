@@ -8,6 +8,10 @@ type ErrorCode int8
 const (
 	// NotFound – ...
 	NotFound ErrorCode = iota
+	// Internal – ...
+	Internal
+	// BadRequest – ...
+	BadRequest
 )
 
 // NestedError – struct to wrap error
@@ -50,6 +54,19 @@ func Wrap(err error, msg string) error {
 	return &NestedError{
 		Msg: msg,
 		Err: err,
+	}
+}
+
+// WrapC – ...
+func WrapC(err error, msg string, code ErrorCode) error {
+	if err == nil {
+		return NewC(msg, code)
+	}
+
+	return &NestedError{
+		Msg:  msg,
+		Err:  err,
+		Code: code,
 	}
 }
 

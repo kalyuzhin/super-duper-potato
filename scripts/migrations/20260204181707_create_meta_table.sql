@@ -3,6 +3,7 @@
 CREATE TABLE meta
 (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id    BIGINT  NOT NULL,
     name       TEXT    NOT NULL UNIQUE,
     kdf_type   TEXT    NOT NULL,
     salt       BLOB    NOT NULL,
