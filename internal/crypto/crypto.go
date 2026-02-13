@@ -43,15 +43,15 @@ func GetArgonKey(masterPassword string, salt []byte) []byte {
 }
 
 // GenerateArgon2Key – generates new argon2 key
-func GenerateArgon2Key(masterPassword string, saltLength int64) ([]byte, []byte) {
-	salt := generateSalt(saltLength)
-	key := argon2.IDKey([]byte(masterPassword), salt, 3, 32*1024, 4, 32)
+func GenerateArgon2Key(masterPassword string, saltLength int64) (key []byte, salt []byte) {
+	salt = generateSalt(saltLength)
+	key = argon2.IDKey([]byte(masterPassword), salt, 3, 32*1024, 4, 32)
 
 	return key, salt
 }
 
 // Encrypt – ...
-func Encrypt(password string, key []byte) ([]byte, []byte) {
+func Encrypt(password string, key []byte) (cipherText []byte, nonce []byte) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, nil
@@ -62,9 +62,9 @@ func Encrypt(password string, key []byte) ([]byte, []byte) {
 		return nil, nil
 	}
 
-	nonce := generateSalt(int64(aead.NonceSize()))
+	nonce = generateSalt(int64(aead.NonceSize()))
 
-	cipherText := aead.Seal(nil, nonce, []byte(password), nil)
+	cipherText = aead.Seal(nil, nonce, []byte(password), nil)
 
 	return cipherText, nonce
 }

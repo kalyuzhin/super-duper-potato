@@ -1,6 +1,8 @@
 package errorspkg
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // ErrorCode – ...
 type ErrorCode int8
@@ -77,4 +79,9 @@ func (e *NestedError) Unwrap() error {
 	}
 
 	return e.Err
+}
+
+// Code – ...
+func Code(err error) ErrorCode {
+	return err.(*NestedError).Code
 }

@@ -3,8 +3,9 @@ package sqlite
 import (
 	"context"
 	"database/sql"
-
+	"github.com/kalyuzhin/password-manager/pkg/errorspkg"
 	_ "modernc.org/sqlite"
+	"strings"
 )
 
 const (
@@ -38,12 +39,17 @@ func (db *DB) QueryRow(_ context.Context, q string, args ...any) *sql.Row {
 	return db.DB.QueryRow(q, args)
 }
 
-func checkSQLErrors(err error) {
-	switch err.Error() {
-
+func checkSQLErrors(err error) error {
+	switch {
+	case strings.HasPrefix(err.Error(), "sql: no rows in result set"):
+		return errorspkg.NewC(err.Error(), errorspkg.NotFound)
+	default:
+		return nil
 	}
 }
 
-func checkRowsAffected(rows sql.Result) {
+func checkRowsAffected(rows sql.Result) error {
+	_, err := rows.RowsAffected()
 
+	return err
 }

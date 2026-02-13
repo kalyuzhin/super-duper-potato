@@ -23,12 +23,12 @@ func (db *DB) GetVaultDataByService(ctx context.Context, service string) (data m
 }
 
 // InsertVaultData – ...
-func (db *DB) InsertVaultData(ctx context.Context, data model.VaultData) error {
+func (db *DB) InsertVaultData(ctx context.Context, userID int64, data model.VaultData) error {
 	q := `
-	INSERT INTO vault(service, login, login_nonce, password, password_nonce)
-	VALUES ($1, $2, $3, $4, $5);`
+	INSERT INTO vault(service, user_id, login, login_nonce, password, password_nonce)
+	VALUES ($1, $2, $3, $4, $5, $6);`
 
-	_, err := db.Exec(ctx, q, data.Service, data.Login, data.LoginNonce, data.Password, data.PasswordNonce)
+	_, err := db.Exec(ctx, q, data.Service, userID, data.Login, data.LoginNonce, data.Password, data.PasswordNonce)
 	if err != nil {
 		return errorspkg.Wrap(err, "can't insert vault data")
 	}
