@@ -2,7 +2,6 @@ package sqlite
 
 import (
 	"context"
-
 	"github.com/kalyuzhin/password-manager/internal/model"
 	"github.com/kalyuzhin/password-manager/pkg/errorspkg"
 )
@@ -45,7 +44,7 @@ func (db *DB) InsertMeta(ctx context.Context, userID int64, meta model.MetaData)
 	INSERT INTO meta(name, user_id, kdf_type, salt, time, threads, memory, key_length)
 	VALUES($1, $2, $3, $4, $5, $6, $7, $8);`
 
-	_, err := db.Exec(ctx, q, meta.Name, userID, meta.KDFType, meta.Salt, meta.KDFTime, meta.KDFThreads,
+	_, err := db.Exec(ctx, q, meta.Name, userID, string(meta.KDFType), meta.Salt, meta.KDFTime, meta.KDFThreads,
 		meta.KDFMemory, meta.KDFKeyLength)
 	if err != nil {
 		return errorspkg.Wrap(checkSQLErrors(err), "can't insert meta")

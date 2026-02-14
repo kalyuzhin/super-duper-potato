@@ -11,6 +11,8 @@ import (
 	"github.com/kalyuzhin/password-manager/internal/model"
 )
 
+const saltSize = 16
+
 // GenerateRandomSecurePassword – generates secure password
 func GenerateRandomSecurePassword(length uint8) string {
 	if length < 8 || length > 32 {
@@ -37,14 +39,14 @@ func getRandomSymbol() rune {
 
 // GetArgonKey – ...
 func GetArgonKey(masterPassword string, salt []byte) []byte {
-	key := argon2.Key([]byte(masterPassword), salt, 3, 32*1024, 4, 32)
+	key := argon2.IDKey([]byte(masterPassword), salt, 3, 32*1024, 4, 32)
 
 	return key
 }
 
 // GenerateArgon2Key – generates new argon2 key
-func GenerateArgon2Key(masterPassword string, saltLength int64) (key []byte, salt []byte) {
-	salt = generateSalt(saltLength)
+func GenerateArgon2Key(masterPassword string) (key []byte, salt []byte) {
+	salt = generateSalt(saltSize)
 	key = argon2.IDKey([]byte(masterPassword), salt, 3, 32*1024, 4, 32)
 
 	return key, salt

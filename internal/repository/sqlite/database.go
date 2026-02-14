@@ -3,13 +3,15 @@ package sqlite
 import (
 	"context"
 	"database/sql"
-	"github.com/kalyuzhin/password-manager/pkg/errorspkg"
-	_ "modernc.org/sqlite"
 	"strings"
+
+	_ "modernc.org/sqlite"
+
+	"github.com/kalyuzhin/password-manager/pkg/errorspkg"
 )
 
 const (
-	driverName = "sqlite3"
+	driverName = "sqlite"
 )
 
 // DB – wrapper for sqlite storage
@@ -31,12 +33,12 @@ func NewDB(filePath string) (*DB, error) {
 
 // Exec – ...
 func (db *DB) Exec(_ context.Context, q string, args ...any) (sql.Result, error) {
-	return db.DB.Exec(q, args)
+	return db.DB.Exec(q, args...)
 }
 
 // QueryRow – ...
 func (db *DB) QueryRow(_ context.Context, q string, args ...any) *sql.Row {
-	return db.DB.QueryRow(q, args)
+	return db.DB.QueryRow(q, args...)
 }
 
 func checkSQLErrors(err error) error {
@@ -49,7 +51,10 @@ func checkSQLErrors(err error) error {
 }
 
 func checkRowsAffected(rows sql.Result) error {
-	_, err := rows.RowsAffected()
+	number, err := rows.RowsAffected()
+	if number == 0 {
+		return errorspkg.New("0 rows affected")
+	}
 
 	return err
 }

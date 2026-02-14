@@ -2,8 +2,6 @@ package service
 
 import (
 	"context"
-	"math/rand"
-
 	"github.com/kalyuzhin/password-manager/internal/crypto"
 	"github.com/kalyuzhin/password-manager/internal/model"
 	"github.com/kalyuzhin/password-manager/internal/repository/sqlite"
@@ -13,6 +11,11 @@ import (
 // Service – ...
 type Service struct {
 	cryptoStorage sqlite.DB
+}
+
+// NewService – ...
+func NewService(storage sqlite.DB) *Service {
+	return &Service{cryptoStorage: storage}
 }
 
 // SaveNewPassword – ...
@@ -50,9 +53,9 @@ func (s *Service) SaveNewPassword(ctx context.Context, userID int64, masterPassw
 }
 
 func (s *Service) getNewArgon2Key(ctx context.Context, userID int64, masterPassword string) (key []byte, err error) {
-	key, salt := crypto.GenerateArgon2Key(masterPassword, rand.Int63())
+	key, salt := crypto.GenerateArgon2Key(masterPassword)
 	meta := model.MetaData{
-		KDFType:      "Argon2",
+		KDFType:      model.KDFTypeArgon2,
 		KDFKeyLength: 32,
 		KDFMemory:    32 * 1024,
 		KDFThreads:   4,
@@ -80,7 +83,21 @@ func (s *Service) GenerateNewSecurePassword(ctx context.Context, length uint8) s
 	return password
 }
 
-// GetPassword – ...
-func (s *Service) GetPassword(ctx context.Context) {
+// GetVaultData – ...
+func (s *Service) GetVaultData(ctx context.Context, userID int64, masterPassword, service string) (login, password string, err error) {
+	meta, err := s.cryptoStorage.GetMetaByUserID(ctx, userID)
+	if err != nil {
+		return "", "", err
+	}
+	key := s.getExistingArgon2Key(ctx, masterPassword, meta.Salt)
 
+	data, err := s.cryptoStorage.GetVaultDataByService(ctx, service)
+	if err != nil {
+		return "", "", err
+	}
+
+	login = crypto.Decrypt(data.Login, key, data.LoginNonce)
+	password = crypto.Decrypt(data.Password, key, data.PasswordNonce)
+
+	return login, password, nil
 }
