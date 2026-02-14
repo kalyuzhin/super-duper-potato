@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"github.com/kalyuzhin/password-manager/internal/crypto"
+	"github.com/kalyuzhin/password-manager/internal/lib/crypto"
 	"github.com/kalyuzhin/password-manager/internal/model"
 	"github.com/kalyuzhin/password-manager/internal/repository/sqlite"
 	"github.com/kalyuzhin/password-manager/pkg/errorspkg"
@@ -35,8 +35,15 @@ func (s *Service) SaveNewPassword(ctx context.Context, userID int64, masterPassw
 		}
 	}
 
-	passwordEnc, passwordNonce := crypto.Encrypt(password, key)
-	loginEnc, loginNonce := crypto.Encrypt(login, key)
+	passwordEnc, passwordNonce, err := crypto.Encrypt(password, key)
+	if err != nil {
+		return err
+	}
+
+	loginEnc, loginNonce, err := crypto.Encrypt(login, key)
+	if err != nil {
+		return err
+	}
 
 	err = s.cryptoStorage.InsertVaultData(ctx, userID, model.VaultData{
 		Service:       service,
@@ -53,7 +60,11 @@ func (s *Service) SaveNewPassword(ctx context.Context, userID int64, masterPassw
 }
 
 func (s *Service) getNewArgon2Key(ctx context.Context, userID int64, masterPassword string) (key []byte, err error) {
-	key, salt := crypto.GenerateArgon2Key(masterPassword)
+	key, salt, err := crypto.GenerateArgon2Key(masterPassword)
+	if err != nil {
+		return nil, err
+	}
+
 	meta := model.MetaData{
 		KDFType:      model.KDFTypeArgon2,
 		KDFKeyLength: 32,
@@ -77,10 +88,8 @@ func (s *Service) getExistingArgon2Key(ctx context.Context, masterPassword strin
 }
 
 // GenerateNewSecurePassword – ...
-func (s *Service) GenerateNewSecurePassword(ctx context.Context, length uint8) string {
-	password := crypto.GenerateRandomSecurePassword(length)
-
-	return password
+func (s *Service) GenerateNewSecurePassword(ctx context.Context, length uint8) (string, error) {
+	return crypto.GenerateRandomSecurePassword(length)
 }
 
 // GetVaultData – ...
@@ -96,8 +105,20 @@ func (s *Service) GetVaultData(ctx context.Context, userID int64, masterPassword
 		return "", "", err
 	}
 
-	login = crypto.Decrypt(data.Login, key, data.LoginNonce)
-	password = crypto.Decrypt(data.Password, key, data.PasswordNonce)
+	login, err = crypto.Decrypt(data.Login, key, data.LoginNonce)
+	if err != nil {
+		return "", "", err
+	}
+
+	password, err = crypto.Decrypt(data.Password, key, data.PasswordNonce)
+	if err != nil {
+		return "", "", err
+	}
 
 	return login, password, nil
+}
+
+// GenerateNewPassword – ...
+func (s *Service) GenerateNewPassword(ctx context.Context) {
+
 }
