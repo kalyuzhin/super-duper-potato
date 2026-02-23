@@ -1,16 +1,9 @@
 package main
 
 import (
-	"context"
-	"github.com/kalyuzhin/password-manager/internal/repository/sqlite"
-	"log"
+	"github.com/kalyuzhin/password-manager/pkg/cobra"
 )
 
 func main() {
-	_ = context.Background()
-	_, err := sqlite.NewDB("passwords.db")
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	cobra.Execute()
 }

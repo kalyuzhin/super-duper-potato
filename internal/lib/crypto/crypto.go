@@ -3,8 +3,12 @@ package crypto
 import (
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/hkdf"
 	"crypto/rand"
+	"crypto/sha256"
+	"crypto/subtle"
 	"math/big"
+	"runtime"
 
 	"golang.org/x/crypto/argon2"
 
@@ -13,6 +17,18 @@ import (
 )
 
 const saltSize = 16
+
+const (
+	encryption = "encryption"
+	auth       = "auth"
+
+	memory  = 1024 * 128
+	kdfTime = 4
+)
+
+var (
+	threads = uint8(runtime.NumCPU())
+)
 
 // GenerateRandomSecurePassword – generates secure password
 func GenerateRandomSecurePassword(length uint8) (string, error) {
@@ -44,7 +60,7 @@ func getRandomSymbol() (rune, error) {
 
 // GetArgonKey – ...
 func GetArgonKey(masterPassword string, salt []byte) []byte {
-	key := argon2.IDKey([]byte(masterPassword), salt, 3, 32*1024, 4, 32)
+	key := argon2.IDKey([]byte(masterPassword), salt, kdfTime, memory, threads, 64)
 
 	return key
 }
@@ -55,7 +71,7 @@ func GenerateArgon2Key(masterPassword string) (key []byte, salt []byte, err erro
 	if err != nil {
 		return nil, nil, err
 	}
-	key = argon2.IDKey([]byte(masterPassword), salt, 3, 32*1024, 4, 32)
+	key = argon2.IDKey([]byte(masterPassword), salt, kdfTime, memory, threads, 64)
 
 	return key, salt, nil
 }
@@ -114,4 +130,33 @@ func generateSalt(saltLength int64) ([]byte, error) {
 	}
 
 	return salt, nil
+}
+
+// DeriveKeys – ...
+func DeriveKeys(masterKey []byte) (encKey, authKey []byte, err error) {
+	hash := sha256.New
+
+	encKey, err = hkdf.Expand(hash, masterKey, encryption, 32)
+	if err != nil {
+		return nil, nil, err
+	}
+	authKey, err = hkdf.Expand(hash, masterKey, auth, 32)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return encKey, authKey, nil
+}
+
+// GetHash – ...
+func GetHash(key []byte) []byte {
+	hash := sha256.Sum256(key)
+
+	return hash[:]
+
+}
+
+// CompareHash – ...
+func CompareHash(x, y []byte) bool {
+	return subtle.ConstantTimeCompare(x, y) == 1
 }

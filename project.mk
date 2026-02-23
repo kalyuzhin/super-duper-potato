@@ -30,7 +30,7 @@ help:
 
 .PHONY: build
 build:
-	go build -o bin/main cmd/passwordmanager/main.go
+	go build -o bin/main cmd/cli/main.go
 
 .PHONY: migrate-pg
 migrate-pg:
