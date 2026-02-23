@@ -17,5 +17,8 @@ func main() {
 	}
 	s := service.NewService(db)
 
-	cobra.Execute(s)
+	cmd := cobra.NewRootCmd(s)
+	if err = cmd.Execute(); err != nil {
+		log.Fatal(err)
+	}
 }

@@ -9,26 +9,47 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// rmCmd represents the rm command
-var rmCmd = &cobra.Command{
-	Use:   "rm",
-	Short: "Delete vault data",
-	Long:  ``,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("rm called")
-	},
-}
+// NewRmCmd – ...
+func NewRmCmd(app App) *cobra.Command {
+	var (
+		userID  int64
+		service string
+	)
 
-func init() {
-	rootCmd.AddCommand(rmCmd)
+	cmd := &cobra.Command{
+		Use:   "rm",
+		Short: "Delete vault data",
+		Long:  ``,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			masterPassword, err := readSecret("Master password: ")
+			if err != nil {
+				return err
+			}
 
-	// Here you will define your flags and configuration settings.
+			if service == "" {
+				serviceTmp, err := read("Service: ")
+				if err != nil {
+					return err
+				}
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// rmCmd.PersistentFlags().String("foo", "", "A help for foo")
+				service = serviceTmp
+			}
 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// rmCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+			err = app.DeleteVaultData(cmd.Context(), userID, masterPassword, service)
+			if err != nil {
+				return err
+			}
+
+			fmt.Println("vault data has been deleted")
+
+			return nil
+		},
+	}
+
+	cmd.Flags().Int64VarP(&userID, "user", "U", 0, "User ID")
+	cmd.Flags().StringVarP(&service, "service", "S", "", "Service name")
+
+	cmd.MarkFlagRequired("user")
+
+	return cmd
 }

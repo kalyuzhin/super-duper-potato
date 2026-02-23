@@ -9,26 +9,31 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// generateCmd represents the generate command
-var generateCmd = &cobra.Command{
-	Use:   "generate",
-	Short: "Generate new secure password",
-	Long:  ``,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("generate called")
-	},
-}
+// NewGenerateCmd – ...
+func NewGenerateCmd(app App) *cobra.Command {
+	var (
+		length uint8
+	)
 
-func init() {
-	rootCmd.AddCommand(generateCmd)
+	cmd := &cobra.Command{
+		Use:   "generate",
+		Short: "Generate new secure password",
+		Long:  ``,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			password, err := app.GenerateNewSecurePassword(cmd.Context(), length)
+			if err != nil {
+				return err
+			}
 
-	// Here you will define your flags and configuration settings.
+			fmt.Printf("Generated password: %s\n\r", password)
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// generateCmd.PersistentFlags().String("foo", "", "A help for foo")
+			return nil
+		},
+	}
 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// generateCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	cmd.Flags().Uint8VarP(&length, "length", "L", 0, "Password length")
+
+	cmd.MarkFlagRequired("length")
+
+	return cmd
 }

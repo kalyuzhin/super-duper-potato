@@ -24,7 +24,7 @@ func (db *DB) GetUserAuthKey(ctx context.Context, userID int64) (authKey []byte,
 // CheckUserExists – ...
 func (db *DB) CheckUserExists(ctx context.Context, userID int64) (exists bool, err error) {
 	q := `
-	SELECT EXISTS(SELECT id FROM users WHERE id = 1);`
+	SELECT EXISTS(SELECT id FROM users WHERE id = $1);`
 
 	err = db.DB.QueryRow(q, userID).Scan(&exists)
 	if err != nil {

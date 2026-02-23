@@ -16,7 +16,7 @@ func (db *DB) GetVaultDataByService(ctx context.Context, service string) (data m
 
 	err = db.QueryRow(ctx, q, service).Scan(&data.ID, &data.Service, &data.Login, &data.LoginNonce, &data.Password, &data.PasswordNonce)
 	if err != nil {
-		return data, errorspkg.Wrap(err, "can't get vault data by service")
+		return data, errorspkg.Wrap(checkSQLErrors(err), "can't get vault data by service")
 	}
 
 	return data, nil
@@ -30,7 +30,7 @@ func (db *DB) InsertVaultData(ctx context.Context, userID int64, data model.Vaul
 
 	_, err := db.Exec(ctx, q, data.Service, userID, data.Login, data.LoginNonce, data.Password, data.PasswordNonce)
 	if err != nil {
-		return errorspkg.Wrap(err, "can't insert vault data")
+		return errorspkg.Wrap(checkSQLErrors(err), "can't insert vault data")
 	}
 
 	return nil

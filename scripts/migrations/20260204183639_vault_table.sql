@@ -14,6 +14,8 @@ CREATE TABLE vault
     created_at     INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
     updated_at     INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
 );
+
+CREATE UNIQUE INDEX vault_user_id_service_idx ON vault(user_id, service);
 -- +goose StatementEnd
 
 -- +goose Down

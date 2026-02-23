@@ -1,39 +1,34 @@
 package cobra
 
 import (
-	"os"
+	"context"
 
 	"github.com/spf13/cobra"
 )
 
-// rootCmd represents the base command when called without any subcommands
-var rootCmd = &cobra.Command{
-	Use:   "password-manager",
-	Short: "Password Manager",
-	Long: `
+// App – ...
+type App interface {
+	SaveNewPassword(ctx context.Context, userID int64, masterPassword, service, login, password string) error
+	GenerateNewSecurePassword(_ context.Context, length uint8) (string, error)
+	GetVaultData(ctx context.Context, userID int64, masterPassword, service string) (login, password string, err error)
+	DeleteVaultData(ctx context.Context, userID int64, masterPassword, service string) error
+}
+
+// NewRootCmd – ...
+func NewRootCmd(app App) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "password-manager",
+		Short: "Password Manager",
+		Long: `
 Password Manager provides local and remote usage`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	//Run: func(cmd *cobra.Command, args []string) { },
-}
-
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute() {
-	err := rootCmd.Execute()
-	if err != nil {
-		os.Exit(1)
 	}
-}
 
-func init() {
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
+	cmd.AddCommand(
+		NewGenerateCmd(app),
+		NewGetCmd(app),
+		NewSaveCmd(app),
+		NewRmCmd(app),
+	)
 
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.password-manager.yaml)")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	return cmd
 }

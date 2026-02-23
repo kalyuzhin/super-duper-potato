@@ -9,26 +9,47 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// getCmd represents the get command
-var getCmd = &cobra.Command{
-	Use:   "get",
-	Short: "Get vault data",
-	Long:  ``,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("get called")
-	},
-}
+// NewGetCmd – ...
+func NewGetCmd(app App) *cobra.Command {
+	var (
+		userID  int64
+		service string
+	)
 
-func init() {
-	rootCmd.AddCommand(getCmd)
+	cmd := &cobra.Command{
+		Use:   "get",
+		Short: "Get vault data",
+		Long:  ``,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			masterPassword, err := readSecret("Master password: ")
+			if err != nil {
+				return err
+			}
 
-	// Here you will define your flags and configuration settings.
+			if service == "" {
+				serviceTmp, err := read("Service: ")
+				if err != nil {
+					return err
+				}
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// getCmd.PersistentFlags().String("foo", "", "A help for foo")
+				service = serviceTmp
+			}
 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// getCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+			login, password, err := app.GetVaultData(cmd.Context(), userID, masterPassword, service)
+			if err != nil {
+				return err
+			}
+
+			fmt.Printf("Login: %s\n\rPassword: %s\n\r", login, password)
+
+			return nil
+		},
+	}
+
+	cmd.Flags().Int64VarP(&userID, "user", "U", 0, "User ID")
+	cmd.Flags().StringVarP(&service, "service", "S", "", "Service name")
+
+	cmd.MarkFlagRequired("user")
+
+	return cmd
 }

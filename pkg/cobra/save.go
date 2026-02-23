@@ -9,26 +9,57 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// saveCmd represents the save command
-var saveCmd = &cobra.Command{
-	Use:   "save",
-	Short: "Save data to vault",
-	Long:  ``,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("save called")
-	},
-}
+// NewSaveCmd – ...
+func NewSaveCmd(app App) *cobra.Command {
+	var (
+		userID  int64
+		service string
+	)
 
-func init() {
-	rootCmd.AddCommand(saveCmd)
+	cmd := &cobra.Command{
+		Use:   "save",
+		Short: "Save data to vault",
+		Long:  ``,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			masterPassword, err := readSecret("Master password: ")
+			if err != nil {
+				return err
+			}
 
-	// Here you will define your flags and configuration settings.
+			if service == "" {
+				serviceTmp, err := read("Service: ")
+				if err != nil {
+					return err
+				}
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// saveCmd.PersistentFlags().String("foo", "", "A help for foo")
+				service = serviceTmp
+			}
 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// saveCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+			login, err := read("Login: ")
+			if err != nil {
+				return err
+			}
+
+			password, err := readSecret("Password: ")
+			if err != nil {
+				return err
+			}
+
+			err = app.SaveNewPassword(cmd.Context(), userID, masterPassword, service, login, password)
+			if err != nil {
+				return err
+			}
+
+			fmt.Println("credentials has been saved")
+
+			return nil
+		},
+	}
+
+	cmd.Flags().Int64VarP(&userID, "user", "U", 0, "User ID")
+	cmd.Flags().StringVarP(&service, "service", "S", "", "Service name")
+
+	cmd.MarkFlagRequired("user")
+
+	return cmd
 }
