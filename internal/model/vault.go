@@ -15,3 +15,12 @@ type VaultData struct {
 	CreatedAt     time.Time `db:"created_at"`
 	UpdatedAt     time.Time `db:"updated_at"`
 }
+
+// VaultDataDTO – ...
+type VaultDataDTO struct {
+	Service       string `db:"service"`
+	Login         []byte `db:"login"`
+	LoginNonce    []byte `db:"login_nonce"`
+	Password      []byte `db:"password"`
+	PasswordNonce []byte `db:"password_nonce"`
+}

@@ -13,7 +13,7 @@ func (db *DB) GetUserAuthKey(ctx context.Context, userID int64) (authKey []byte,
 	FROM users
 	WHERE id = $1;`
 
-	err = db.DB.QueryRow(q, userID).Scan(&authKey)
+	err = db.QueryRow(ctx, q, userID).Scan(&authKey)
 	if err != nil {
 		return authKey, errorspkg.Wrap(checkSQLErrors(err), "can't get user by id")
 	}
@@ -26,7 +26,7 @@ func (db *DB) CheckUserExists(ctx context.Context, userID int64) (exists bool, e
 	q := `
 	SELECT EXISTS(SELECT id FROM users WHERE id = $1);`
 
-	err = db.DB.QueryRow(q, userID).Scan(&exists)
+	err = db.QueryRow(ctx, q, userID).Scan(&exists)
 	if err != nil {
 		return false, errorspkg.Wrap(checkSQLErrors(err), "can't check user exists")
 	}
@@ -40,7 +40,7 @@ func (db *DB) InsertUser(ctx context.Context, userID int64, authHash []byte) err
 	INSERT INTO users(id, auth_key)
 	VALUES ($1, $2);`
 
-	rows, err := db.DB.Exec(q, userID, authHash)
+	rows, err := db.Exec(ctx, q, userID, authHash)
 	if err != nil {
 		return errorspkg.Wrap(checkSQLErrors(err), "can't insert user")
 	}

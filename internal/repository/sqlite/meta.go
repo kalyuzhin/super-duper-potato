@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	"context"
+
 	"github.com/kalyuzhin/password-manager/internal/model"
 	"github.com/kalyuzhin/password-manager/pkg/errorspkg"
 )

@@ -8,13 +8,14 @@ import (
 )
 
 // GetVaultDataByService – ...
-func (db *DB) GetVaultDataByService(ctx context.Context, service string) (data model.VaultData, err error) {
+func (db *DB) GetVaultDataByService(ctx context.Context, userID int64, service string) (data model.VaultData, err error) {
 	q := `
 	SELECT id, service, login, login_nonce, password, password_nonce
 	FROM vault
-	WHERE service = $1;`
+	WHERE service = $1
+		AND user_id = $2;`
 
-	err = db.QueryRow(ctx, q, service).Scan(&data.ID, &data.Service, &data.Login, &data.LoginNonce, &data.Password, &data.PasswordNonce)
+	err = db.QueryRow(ctx, q, service, userID).Scan(&data.ID, &data.Service, &data.Login, &data.LoginNonce, &data.Password, &data.PasswordNonce)
 	if err != nil {
 		return data, errorspkg.Wrap(checkSQLErrors(err), "can't get vault data by service")
 	}

@@ -6,22 +6,21 @@ import (
 
 	"github.com/kalyuzhin/password-manager/internal/lib/crypto"
 	"github.com/kalyuzhin/password-manager/internal/model"
-	"github.com/kalyuzhin/password-manager/internal/repository/sqlite"
 	"github.com/kalyuzhin/password-manager/pkg/errorspkg"
 )
 
-// Service – ...
-type Service struct {
-	cryptoStorage *sqlite.DB
+// ThickService – ...
+type ThickService struct {
+	cryptoStorage Storage
 }
 
 // NewService – ...
-func NewService(storage *sqlite.DB) *Service {
-	return &Service{cryptoStorage: storage}
+func NewService(storage Storage) *ThickService {
+	return &ThickService{cryptoStorage: storage}
 }
 
 // SaveNewPassword – ...
-func (s *Service) SaveNewPassword(ctx context.Context, userID int64, masterPassword, service, login, password string) error {
+func (s *ThickService) SaveNewPassword(ctx context.Context, userID int64, masterPassword, service, login, password string) error {
 	userExists, err := s.cryptoStorage.CheckUserExists(ctx, userID)
 	if err != nil {
 		return err
@@ -94,7 +93,7 @@ func (s *Service) SaveNewPassword(ctx context.Context, userID int64, masterPassw
 	return nil
 }
 
-func (s *Service) getNewArgon2Key(ctx context.Context, userID int64, masterPassword string) (key []byte, err error) {
+func (s *ThickService) getNewArgon2Key(ctx context.Context, userID int64, masterPassword string) (key []byte, err error) {
 	key, salt, err := crypto.GenerateArgon2Key(masterPassword)
 	if err != nil {
 		return nil, err
@@ -118,17 +117,17 @@ func (s *Service) getNewArgon2Key(ctx context.Context, userID int64, masterPassw
 	return key, nil
 }
 
-func (s *Service) getExistingArgon2Key(_ context.Context, masterPassword string, salt []byte) []byte {
+func (s *ThickService) getExistingArgon2Key(_ context.Context, masterPassword string, salt []byte) []byte {
 	return crypto.GetArgonKey(masterPassword, salt)
 }
 
 // GenerateNewSecurePassword – ...
-func (s *Service) GenerateNewSecurePassword(_ context.Context, length uint8) (string, error) {
+func (s *ThickService) GenerateNewSecurePassword(_ context.Context, length uint8) (string, error) {
 	return crypto.GenerateRandomSecurePassword(length)
 }
 
 // GetVaultData – ...
-func (s *Service) GetVaultData(ctx context.Context, userID int64, masterPassword, service string) (login, password string, err error) {
+func (s *ThickService) GetVaultData(ctx context.Context, userID int64, masterPassword, service string) (login, password string, err error) {
 	meta, err := s.cryptoStorage.GetMetaByUserID(ctx, userID)
 	if err != nil {
 		return "", "", err
@@ -157,7 +156,7 @@ func (s *Service) GetVaultData(ctx context.Context, userID int64, masterPassword
 		return "", "", errorspkg.New("auth failed")
 	}
 
-	data, err := s.cryptoStorage.GetVaultDataByService(ctx, service)
+	data, err := s.cryptoStorage.GetVaultDataByService(ctx, userID, service)
 	if err != nil {
 		return "", "", err
 	}
@@ -176,7 +175,7 @@ func (s *Service) GetVaultData(ctx context.Context, userID int64, masterPassword
 }
 
 // DeleteVaultData – ...
-func (s *Service) DeleteVaultData(ctx context.Context, userID int64, masterPassword, service string) error {
+func (s *ThickService) DeleteVaultData(ctx context.Context, userID int64, masterPassword, service string) error {
 	storedAuthHash, err := s.cryptoStorage.GetUserAuthKey(ctx, userID)
 	if err != nil {
 		return err

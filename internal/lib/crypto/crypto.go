@@ -67,7 +67,7 @@ func GetArgonKey(masterPassword string, salt []byte) []byte {
 
 // GenerateArgon2Key – generates new argon2 key
 func GenerateArgon2Key(masterPassword string) (key []byte, salt []byte, err error) {
-	salt, err = generateSalt(saltSize)
+	salt, err = generateRandomBytes(saltSize)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -88,7 +88,7 @@ func Encrypt(password string, key []byte) (cipherText []byte, nonce []byte, err 
 		return nil, nil, err
 	}
 
-	nonce, err = generateSalt(int64(aead.NonceSize()))
+	nonce, err = generateRandomBytes(int64(aead.NonceSize()))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -118,12 +118,12 @@ func Decrypt(cipherText, key, nonce []byte) (string, error) {
 	return string(decrypted), nil
 }
 
-func generateSalt(saltLength int64) ([]byte, error) {
-	if saltLength == 0 {
-		return nil, errorspkg.New("salt length cannot be 0")
+func generateRandomBytes(bytesLength int64) ([]byte, error) {
+	if bytesLength == 0 {
+		return nil, errorspkg.New("bytes length cannot be 0")
 	}
 
-	salt := make([]byte, saltLength)
+	salt := make([]byte, bytesLength)
 	_, err := rand.Read(salt)
 	if err != nil {
 		return nil, err
