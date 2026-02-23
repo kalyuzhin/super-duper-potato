@@ -194,6 +194,10 @@ func (s *Service) DeleteVaultData(ctx context.Context, userID int64, masterPassw
 		return err
 	}
 
+	defer func() {
+		crypto.ClearMemory(authKey)
+	}()
+
 	crypto.ClearMemory(masterKey)
 
 	authHash := crypto.GetHash(authKey)
