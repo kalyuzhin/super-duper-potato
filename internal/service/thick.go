@@ -12,11 +12,11 @@ import (
 
 // Service – ...
 type Service struct {
-	cryptoStorage sqlite.DB
+	cryptoStorage *sqlite.DB
 }
 
 // NewService – ...
-func NewService(storage sqlite.DB) *Service {
+func NewService(storage *sqlite.DB) *Service {
 	return &Service{cryptoStorage: storage}
 }
 
